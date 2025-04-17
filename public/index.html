@@ -37,7 +37,7 @@
 
     function connect() {
       console.log(`[WS] Attempting to connect (attempt ${reconnectAttempts + 1})`);
-      ws = new WebSocket(`ws://localhost:4000`);
+      ws = new WebSocket(`ws://103.59.160.21:4000`);
 
       ws.onopen = () => {
         console.log('[WS] Connected successfully');
