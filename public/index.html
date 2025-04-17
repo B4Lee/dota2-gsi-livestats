@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dota 2 GSI Live Stats</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #1a1a1a; color: white; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #2a2a2a; padding: 20px; border-radius: 5px; }
+    .connection-status { padding: 10px; margin-bottom: 20px; border-radius: 5px; text-align: center; }
+    .connected { background: #2d7a2d; }
+    .disconnected { background: #7a2d2d; }
+    .stat { margin: 10px 0; padding: 10px; background: #333; border-radius: 3px; }
+    .stat-name { color: #f0a800; font-weight: bold; margin-bottom: 5px; }
+    .stat-value { font-family: monospace; }
+    .last-update { font-size: 0.8em; color: #aaa; text-align: right; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="connection-status" class="connection-status disconnected">Disconnected</div>
+    <h1>Dota 2 Live Stats</h1>
+    <div id="stats">
+      <div class="stat">
+        <div class="stat-name">Status</div>
+        <div class="stat-value" id="status">Waiting for data...</div>
+      </div>
+    </div>
+    <div id="last-update" class="last-update">Never updated</div>
+  </div>
+
+  <script>
+    let ws;
+    let reconnectInterval = 3000; // 3 seconds
+    let maxReconnectAttempts = 5;
+    let reconnectAttempts = 0;
+     // Hero image base URL
+     const HERO_IMAGE_URL = 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/';
+
+    function connect() {
+      console.log(`[WS] Attempting to connect (attempt ${reconnectAttempts + 1})`);
+      ws = new WebSocket(`ws://localhost:4000`);
+
+      ws.onopen = () => {
+        console.log('[WS] Connected successfully');
+        updateConnectionStatus(true);
+        reconnectAttempts = 0;
+      };
+
+      ws.onclose = () => {
+        console.log('[WS] Connection closed');
+        updateConnectionStatus(false);
+        attemptReconnect();
+      };
+
+      ws.onerror = (error) => {
+        console.error('[WS] Error:', error);
+        updateConnectionStatus(false);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('[WS] Received data:', data);
+          updateStats(data);
+        } catch (error) {
+          console.error('[WS] Error parsing message:', error);
+        }
+      };
+    }
+
+    function attemptReconnect() {
+      if (reconnectAttempts < maxReconnectAttempts) {
+        reconnectAttempts++;
+        console.log(`[WS] Reconnecting in ${reconnectInterval/1000} seconds...`);
+        setTimeout(connect, reconnectInterval);
+      } else {
+        console.error('[WS] Max reconnection attempts reached');
+      }
+    }
+
+    function updateConnectionStatus(connected) {
+      const statusElement = document.getElementById('connection-status');
+      statusElement.textContent = connected ? "CONNECTED" : "DISCONNECTED";
+      statusElement.className = `connection-status ${connected ? 'connected' : 'disconnected'}`;
+    }
+
+    function getHeroImageName(heroName) {
+      if (!heroName) return '';
+      return heroName.replace('npc_dota_hero_', '').replace(/_/g, '');
+    }
+
+    function updateStats(data) {
+      const statsContainer = document.getElementById('stats');
+      const lastUpdateElement = document.getElementById('last-update');
+      
+      if (!data || (!data.hero && !data.player && !data.map)) {
+        document.getElementById('status').textContent = "Waiting for valid game data...";
+        return;
+      }
+
+      lastUpdateElement.textContent = `Last update: ${new Date().toLocaleTimeString()}`;
+      
+      statsContainer.innerHTML = `
+        <div class="stat">
+          <img class="hero-image" src="${HERO_IMAGE_URL}${getHeroImageName(data.hero.name)}.png" 
+                 alt="${data.hero.name}" onerror="this.src='https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/antimage.png'">
+          <div class="stat-name">Hero</div>
+          <div class="stat-value">${data.hero.name ? data.hero.name.replace('npc_dota_hero_', '') : 'No hero'}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-name">Level</div>
+          <div class="stat-value">${data.hero?.level || '0'}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-name">K/D/A</div>
+          <div class="stat-value">
+            ${data.player?.kills || '0'}/${data.player?.deaths || '0'}/${data.player?.assists || '0'}
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-name">Gold</div>
+          <div class="stat-value">
+            ${data.player?.gold || '0'} (${data.player?.gold_per_min || '0'}/min)
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-name">Last Hits/Denies</div>
+          <div class="stat-value">
+            ${data.player?.last_hits || '0'}/${data.player?.denies || '0'}
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-name">Game Time</div>
+          <div class="stat-value">${formatTime(data.map?.game_time)}</div>
+        </div>
+      `;
+    }
+
+    function formatTime(seconds) {
+      if (!seconds) return "0:00";
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${mins}:${secs}`;
+    }
+
+    // Initial connection
+    connect();
+  </script>
+</body>
+</html>

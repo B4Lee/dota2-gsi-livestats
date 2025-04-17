@@ -1,0 +1,63 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1a1a1a;
+    color: #e1e1e1;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #2d2d2d;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  }
+  
+  h1 {
+    color: #f0a800;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .hero-card {
+    background-color: #3a3a3a;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #f0a800;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 15px 0;
+  }
+  
+  .stat {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .label {
+    font-weight: bold;
+    color: #f0a800;
+  }
+  
+  .value {
+    color: #ffffff;
+  }
+  
+  .game-time {
+    text-align: center;
+    font-size: 0.9em;
+    color: #aaaaaa;
+    margin-top: 10px;
+  }
+  
+  .loading {
+    text-align: center;
+    color: #aaaaaa;
+    font-style: italic;
+  }
