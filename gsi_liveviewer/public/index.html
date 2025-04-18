@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dota 2 Player Stats</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #e1e1e1;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #f0a020;
+            text-align: center;
+        }
+        .game-state {
+            background-color: #2a2a2a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .player-card {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .player-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .player-hero {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+        .player-info {
+            flex-grow: 1;
+        }
+        .player-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #f0a020;
+        }
+        .player-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .match-list {
+            margin-top: 10px;
+        }
+        .match-item {
+            background-color: #333;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .match-win {
+            border-left: 4px solid #4CAF50;
+        }
+        .match-loss {
+            border-left: 4px solid #F44336;
+        }
+        .match-private {
+            border-left: 4px solid #FFC107;
+            color: #FFC107;
+        }
+        .match-error {
+            border-left: 4px solid #9E9E9E;
+        }
+        .hero-icon {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        .kda-positive {
+            color: #4CAF50;
+        }
+        .kda-negative {
+            color: #F44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dota 2 Player Stats</h1>
+        <div class="game-state" id="gameState">Waiting for game data...</div>
+        <div class="player-grid" id="playerGrid"></div>
+    </div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+        const playerGrid = document.getElementById('playerGrid');
+        const gameStateElement = document.getElementById('gameState');
+
+        ws.onopen = () => {
+            console.log('Connected to WebSocket server');
+            gameStateElement.textContent = 'Connected to Dota 2. Waiting for game data...';
+        };
+
+        ws.onmessage = (event) => {
+            const gsiData = JSON.parse(event.data);
+            
+            if (gsiData.map && gsiData.map.game_state) {
+                updateGameState(gsiData.map.game_state);
+                displayPlayers(gsiData.allplayers);
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            gameStateElement.textContent = 'Error connecting to server. Make sure the server is running.';
+        };
+
+        function updateGameState(state) {
+            const stateNames = {
+                "DOTA_GAMERULES_STATE_INIT": "Game Initializing",
+                "DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD": "Waiting for Players",
+                "DOTA_GAMERULES_STATE_HERO_SELECTION": "Hero Selection",
+                "DOTA_GAMERULES_STATE_STRATEGY_TIME": "Strategy Time",
+                "DOTA_GAMERULES_STATE_PRE_GAME": "Pre-Game",
+                "DOTA_GAMERULES_STATE_GAME_IN_PROGRESS": "Game in Progress",
+                "DOTA_GAMERULES_STATE_POST_GAME": "Post-Game"
+            };
+            
+            gameStateElement.textContent = `Game State: ${stateNames[state] || state}`;
+        }
+
+        function displayPlayers(players) {
+            if (!players) {
+                playerGrid.innerHTML = '<div class="player-card">No player data available</div>';
+                return;
+            }
+
+            playerGrid.innerHTML = '';
+            
+            Object.entries(players).forEach(([playerSlot, player]) => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                
+                let playerName = player.name || 'Anonymous';
+                if (player.steamid) {
+                    playerName += ` (${player.steamid})`;
+                }
+                
+                // Current hero information
+                const heroName = player.hero_name || 'unknown';
+                const heroImage = `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${heroName.replace('npc_dota_hero_', '')}.png`;
+                
+                // Current game stats
+                const kills = player.kills || 0;
+                const deaths = player.deaths || 0;
+                const assists = player.assists || 0;
+                const kdaRatio = deaths > 0 ? ((kills + assists) / deaths).toFixed(2) : 'Perfect';
+                
+                playerCard.innerHTML = `
+                    <div class="player-header">
+                        <img src="${heroImage}" class="player-hero" alt="${heroName}" title="${heroName}">
+                        <div class="player-info">
+                            <div class="player-name">${playerName}</div>
+                            <div class="player-stats">
+                                <span>Level: ${player.level || 1}</span>
+                                <span>KDA: <span class="${deaths > 0 && (kills + assists)/deaths < 1 ? 'kda-negative' : 'kda-positive'}">${kills}/${deaths}/${assists} (${kdaRatio})</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    ${player.recent_matches ? 
+                        (player.recent_matches.error === "PRIVATE_PROFILE" ? 
+                            '<div class="match-item match-private">Profile is private</div>' :
+                            (player.recent_matches.error ? 
+                                '<div class="match-item match-error">Data unavailable</div>' :
+                                (player.recent_matches.length > 0 ? 
+                                    `<div>Recent matches:</div>
+                                     <div class="match-list">
+                                       ${player.recent_matches.map(match => `
+                                         <div class="match-item ${match.radiant_win === (match.player_slot < 128) ? 'match-win' : 'match-loss'}">
+                                             <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${match.hero_name?.replace('npc_dota_hero_', '')}.png" 
+                                                  class="hero-icon" 
+                                                  alt="${match.hero_name}" 
+                                                  title="${match.hero_name}">
+                                             ${match.hero_name?.replace('npc_dota_hero_', '') || 'Unknown hero'} - 
+                                             ${match.kills}/${match.deaths}/${match.assists} - 
+                                             ${new Date(match.start_time * 1000).toLocaleDateString()}
+                                         </div>
+                                       `).join('')}
+                                     </div>` : 
+                                     '<div class="match-item">No recent matches found</div>'
+                                )
+                            )
+                        ) : 
+                        '<div class="match-item">No data available</div>'
+                    }
+                `;
+                
+                playerGrid.appendChild(playerCard);
+            });
+        }
+    </script>
+</body>
+</html>

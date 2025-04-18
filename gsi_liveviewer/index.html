@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dota 2 GSI + OpenDota Viewer</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #121212;
+      color: #f0f0f0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+    .tab-container {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .tab {
+      padding: 10px 20px;
+      background: #1e1e1e;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    .tab.active {
+      background: #333;
+      border-bottom: 2px solid #ffa726;
+    }
+    .content {
+      display: none;
+    }
+    .content.active {
+      display: block;
+    }
+    .player-list {
+      display: flex;
+      justify-content: space-between;
+    }
+    .player-box {
+      background: #1e1e1e;
+      margin: 10px;
+      padding: 10px;
+      border-left: 4px solid #888;
+      width: 220px; /* Adjust this to control the size of each player box */
+      display: flex;
+      align-items: center;
+    }
+    .player-box img {
+      width: 50px;
+      height: 50px;
+      margin-right: 15px;
+    }
+    .raw-box {
+      background: #1a1a1a;
+      padding: 10px;
+      margin-top: 20px;
+      border: 1px solid #333;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .header {
+      font-size: 1.4em;
+      color: #ffa726;
+    }
+    .team-container {
+      flex: 1;
+      margin: 20px;
+    }
+    .team-header {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #ffa726;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dota 2 GSI + OpenDota Live Viewer</h1>
+    
+    <div class="tab-container">
+      <div class="tab active" onclick="switchTab('players')">Players</div>
+      <div class="tab" onclick="switchTab('raw')">Raw Data</div>
+    </div>
+    
+    <div id="players-content" class="content active">
+      <div class="player-list">
+        <div class="team-container" id="team2">Radiant</div>
+        <div class="team-container" id="team3">Dire</div>
+      </div>
+    </div>
+    
+    <div id="raw-content" class="content">
+      <div class="header">Raw GSI Dump</div>
+      <pre class="raw-box" id="raw"></pre>
+    </div>
+  </div>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:8080');
+    let lastData = {};
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      
+      document.getElementById(`${tabName}-content`).classList.add('active');
+      document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+      
+      // Refresh the view when switching tabs
+      if (tabName === 'players') {
+        updatePlayersView(lastData);
+      }
+    }
+
+    function getHeroImage(heroName) {
+      // Fix hero name formatting and return the hero image URL
+      return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${heroName.replace('npc_dota_hero_', '')}_lg.png`;
+    }
+
+    function updatePlayersView(data) {
+      const team2Container = document.getElementById('team2');
+      const team3Container = document.getElementById('team3');
+      
+      team2Container.innerHTML = '';
+      team3Container.innerHTML = '';
+
+      if (!data.player || (!data.player.team2 && !data.player.team3)) {
+        team2Container.innerHTML = '<div class="player-box">No player data available for team2.</div>';
+        team3Container.innerHTML = '<div class="player-box">No player data available for team3.</div>';
+        return;
+      }
+
+      // Update team2
+      team2Container.innerHTML = '<div class="team-header">Radiant</div>';
+      Object.entries(data.player.team2).forEach(([key, player]) => {
+        const div = document.createElement('div');
+        div.className = 'player-box';
+        //<img src="${getHeroImage(player.hero?.name || 'default')}" alt="${player.hero?.name || 'Unknown'}">
+        div.innerHTML = `
+      
+          <div>
+            <div><strong>Player:</strong> ${key}</div>
+            <div><strong>Name:</strong> ${player.name || 'Unknown'}</div>
+            <div><strong>Account ID:</strong> ${player.accountid || 'N/A'}</div>
+            <div><strong>Hero:</strong> ${player.hero?.name || 'Unknown'}</div>
+            <div><strong>SteamID:</strong> ${player.steamid || 'Bot or N/A'}</div>
+          </div>
+        `;
+        team2Container.appendChild(div);
+      });
+
+      // Update team3
+      team3Container.innerHTML = '<div class="team-header">Dire</div>';
+      Object.entries(data.player.team3).forEach(([key, player]) => {
+        const div = document.createElement('div');
+        div.className = 'player-box';
+        //<img src="${getHeroImage(player.hero?.name || 'default')}" alt="${player.hero?.name || 'Unknown'}">
+        div.innerHTML = `
+          
+          <div>
+            <div><strong>Player:</strong> ${key}</div>
+            <div><strong>Name:</strong> ${player.name || 'Unknown'}</div>
+            <div><strong>Account ID:</strong> ${player.accountid || 'N/A'}</div>
+            <div><strong>Hero:</strong> ${player.hero?.name || 'Unknown'}</div>
+            <div><strong>SteamID:</strong> ${player.steamid || 'Bot or N/A'}</div>
+          </div>
+        `;
+        team3Container.appendChild(div);
+      });
+    }
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        lastData = data;
+        
+        // Update raw data view
+        document.getElementById('raw').textContent = JSON.stringify(data, null, 2);
+        
+        // Update players view if active
+        if (document.getElementById('players-content').classList.contains('active')) {
+          updatePlayersView(data);
+        }
+      } catch (error) {
+        console.error('Error parsing JSON:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      document.getElementById('players').innerHTML = 
+        '<div class="player-box">Error connecting to WebSocket server</div>';
+    };
+  </script>
+</body>
+</html>

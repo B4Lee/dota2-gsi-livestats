@@ -1,0 +1,143 @@
+{
+    "provider": {
+      "name": "Dota 2",
+      "appid": 570,
+      "version": 1,
+      "steamid": "76561198000000000",
+      "timestamp": 1680000000
+    },
+    "map": {
+      "name": "de_dust2",
+      "game_time": 120,
+      "clock_time": 90,
+      "daytime": true,
+      "nightstalker_night": false,
+      "game_state": "DOTA_GAMERULES_STATE_GAME_IN_PROGRESS",
+      "win_team": "",
+      "customgamename": "",
+      "ward_purchase_cooldown": 0,
+      "radiant_score": 10,
+      "dire_score": 7
+    },
+    "player": {
+      "steamid": "76561198000000000",
+      "name": "MyPlayer",
+      "activity": "playing",
+      "kills": 5,
+      "deaths": 2,
+      "assists": 3,
+      "last_hits": 50,
+      "denies": 3,
+      "kill_streak": 2,
+      "team_name": "Radiant",
+      "gold": 1400,
+      "gold_reliable": 900,
+      "gold_unreliable": 500,
+      "gpm": 480,
+      "xpm": 600,
+      "position": [2300, 1400],
+      "respawn_seconds": 0,
+      "buyback_cost": 999,
+      "buyback_cooldown": 0
+    },
+    "hero": {
+      "id": 1,
+      "name": "npc_dota_hero_antimage",
+      "level": 12,
+      "alive": true,
+      "respawn_seconds": 0,
+      "buyback_cost": 999,
+      "buyback_cooldown": 0,
+      "health": 1200,
+      "max_health": 1400,
+      "mana": 400,
+      "max_mana": 600,
+      "location": [2300, 1400],
+      "gold": 1400
+    },
+    "abilities": {
+      "ability0": {
+        "name": "antimage_mana_break",
+        "level": 3,
+        "can_cast": true,
+        "cooldown": 0,
+        "passive": true,
+        "ultimate": false
+      },
+      "ability1": {
+        "name": "antimage_blink",
+        "level": 2,
+        "can_cast": true,
+        "cooldown": 5
+      },
+      "ability4": {
+        "name": "attribute_bonus",
+        "level": 0
+      }
+    },
+    "items": {
+      "slot0": {
+        "name": "item_quelling_blade",
+        "can_cast": true,
+        "cooldown": 0,
+        "passive": false
+      },
+      "slot1": {
+        "name": "item_power_treads"
+      },
+      "slot2": {
+        "name": "item_bfury"
+      },
+      "slot5": {
+        "name": "item_tpscroll"
+      }
+    },
+    "allplayers": {
+      "player1": {
+        "name": "CoolDude",
+        "accountid": 123456,
+        "steamid": "76561198012345678",
+        "team": 2,
+        "team_name": "Radiant",
+        "hero": {
+          "name": "npc_dota_hero_juggernaut",
+          "level": 10
+        },
+        "kills": 3,
+        "deaths": 1,
+        "assists": 5,
+        "last_hits": 40,
+        "denies": 2,
+        "gold": 1200,
+        "net_worth": 3800
+      },
+      "player2": {
+        "name": "DireGuy",
+        "accountid": 234567,
+        "steamid": "76561198023456789",
+        "team": 3,
+        "team_name": "Dire",
+        "hero": {
+          "name": "npc_dota_hero_axe",
+          "level": 9
+        },
+        "kills": 2,
+        "deaths": 3,
+        "assists": 2,
+        "last_hits": 35,
+        "denies": 4,
+        "gold": 950
+      }
+    },
+    "draft": {
+      "active_team": 2,
+      "pick": true,
+      "activeteam_time_remaining": 25,
+      "radiant_bonus_time": 130,
+      "dire_bonus_time": 120
+    },
+    "wearables": {
+      "wearable0": "item_armor_of_the_shattered_vanguard"
+    }
+  }
+  
