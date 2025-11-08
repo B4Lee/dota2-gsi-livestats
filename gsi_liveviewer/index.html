@@ -143,7 +143,11 @@
           <div>
             <div><strong>Player:</strong> ${key}</div>
             <div><strong>Name:</strong> ${player.name || 'Unknown'}</div>
-            <div><strong>Account ID:</strong> ${player.accountid || 'N/A'}</div>
+           <div><strong>Account ID:</strong> ${
+              player.accountid
+                ? `<a href="https://www.opendota.com/players/${player.accountid}" target="_blank" style="color: #4fc3f7; text-decoration: none;">${player.accountid}</a>`
+                : 'N/A'
+            }</div>
             <div><strong>Hero:</strong> ${player.hero?.name || 'Unknown'}</div>
             <div><strong>SteamID:</strong> ${player.steamid || 'Bot or N/A'}</div>
           </div>
